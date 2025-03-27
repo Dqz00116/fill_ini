@@ -2,6 +2,7 @@ import re
 import os
 import json
 from enum import Enum
+import sys
 
 SECTION_REGEX = r"\[(.*?)\]"
 KEY_REGEX = r"\w+(?=\s*=)"
@@ -39,17 +40,21 @@ class Filler(object):
     Mode = None
 
     def __init__(self):
+        dir_path = os.path.dirname(os.path.abspath(__file__))
+
+        enum_config_path = os.path.join(dir_path, 'enum_config.json')
 
         with open(
-            f"{os.path.dirname(os.path.abspath(__file__))}\enum_config.json",
+            enum_config_path,
             "r",
             encoding="utf-8",
         ) as enum_json:
             enum_dict = json.load(enum_json)
             Filler.Mode = create_enum_from_json("Mode", enum_dict["Mode"])
 
+        config_path = os.path.join(dir_path, 'config.json')
         with open(
-            f"{os.path.dirname(os.path.abspath(__file__))}\config.json",
+            config_path,
             "r",
             encoding="utf-8",
         ) as load_json:
@@ -63,7 +68,8 @@ class Filler(object):
             return str(section).replace("[", "").replace("]", "")
 
         for file_name, fill_info in self._fill_map.items():
-            file_path = self._engine_path + f"/Config/{file_name}.ini"
+            engine_path = os.path.normpath(self._engine_path)
+            file_path = os.path.join(engine_path, "Config", f"{file_name}.ini")
             print(f"-----------Start to read ini file from ({file_path})-----------")
 
             with open(file_path, "r", encoding="utf-8") as file:
@@ -113,3 +119,5 @@ class Filler(object):
 if __name__ == "__main__":
     filler = Filler()
     filler.fill_ini()
+    print(f"Finished.")
+    sys.exit(0)
